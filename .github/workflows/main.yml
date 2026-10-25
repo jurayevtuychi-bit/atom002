@@ -20,14 +20,11 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Java JDK 21 o'rnatish (Capacitor 6+ uchun)
+      - name: Java JDK 21 o'rnatish (Capacitor 6+ va Gradle 8 uchun)
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
           java-version: '21'
-
-      - name: Android SDK sozlash
-        uses: android-actions/setup-android@v3
 
       - name: Web fayllarni (www/index.html) tayyorlash
         run: |
@@ -37,11 +34,11 @@ jobs:
           elif [ -f "index.html" ] && [ ! -f "www/index.html" ]; then
             cp index.html www/index.html
           fi
+          ls -la www/
 
-      - name: package.json va capacitor.config.json yaratish (agar mavjud bo'lmasa)
+      - name: package.json va capacitor.config.json yaratish
         run: |
-          if [ ! -f "package.json" ]; then
-            cat << 'EOF' > package.json
+          cat << 'EOF' > package.json
           {
             "name": "atom-fizikasi-pro",
             "version": "3.0.0",
@@ -57,10 +54,8 @@ jobs:
             }
           }
           EOF
-          fi
 
-          if [ ! -f "capacitor.config.json" ]; then
-            cat << 'EOF' > capacitor.config.json
+          cat << 'EOF' > capacitor.config.json
           {
             "appId": "uz.tabiiyfanlar.atomfizikasi",
             "appName": "Atom Fizikasi",
@@ -68,14 +63,12 @@ jobs:
             "bundledWebRuntime": false
           }
           EOF
-          fi
 
       - name: Capacitor va Android platformani o'rnatish
         run: |
           npm install
-          if [ ! -d "android" ]; then
-            npx cap add android
-          fi
+          rm -rf android
+          npx cap add android
           npx cap copy android
           npx cap sync android
 
@@ -83,7 +76,7 @@ jobs:
         working-directory: ./android
         run: |
           chmod +x gradlew
-          ./gradlew assembleDebug
+          ./gradlew assembleDebug --no-daemon
 
       - name: Tayyor APK faylni Artifacts bo'limiga yuklash
         uses: actions/upload-artifact@v4
